@@ -1,6 +1,10 @@
 #include <ESP8266WiFi.h>
 #include <Losant.h>
 
+///////////////////////////////////////////////////////////////////////////////
+// CONFIG
+///////////////////////////////////////////////////////////////////////////////
+
 // WiFi credentials.
 const char* WIFI_SSID = "";
 const char* WIFI_PASS = "";
@@ -10,9 +14,16 @@ const char* LOSANT_DEVICE_ID = "";
 const char* LOSANT_ACCESS_KEY = "";
 const char* LOSANT_ACCESS_SECRET = "";
 
+// Runtime Config
+const int REPORT_INTERVAL = 30;
+
 // Distance Sensor Pins
 const int TRIG_PIN = 5;
 const int ECHO_PIN = 4;
+
+///////////////////////////////////////////////////////////////////////////////
+// Main
+///////////////////////////////////////////////////////////////////////////////
 
 WiFiClient wifiClient;
 
@@ -60,19 +71,21 @@ void connectLosant() {
   }
   Serial.println("Connected!");
 }
-void ensureLosant() {
-  if (!device.connected()) {
-    Serial.println("Disconnected from MQTT");
-    Serial.println(device.mqttClient.state());
-    connectLosant();
-  }
-}
 
 void disconnectLosant() {
   Serial.println("`disconnectLosant`");
   device.loop();
   delay(10);
   device.disconnect();
+}
+
+void ensureLosant() {
+  if (!device.connected()) {
+    Serial.println("Disconnected from MQTT");
+    Serial.println(device.mqttClient.state());
+    disconnectLosant();
+    connectLosant();
+  }
 }
 
 double readDistance() {
@@ -167,5 +180,5 @@ void loop() {
 
   reportDistance(calculateDistance());
 
-  sleep(10);
+  sleep(REPORT_INTERVAL);
 }
